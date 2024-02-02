@@ -8,19 +8,19 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table
-public class PoliticoComision implements Serializable {
+public class PoliticianCommission implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idPoliticoComision;
+    private Integer id;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    private Politico politico;
+    private Period period;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    private Comision comision;
+    private Commission commission;
 
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    private CargoComision cargoComision;
+    private CommissionPosition commissionPosition;
 
 }

@@ -8,12 +8,12 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table
-public class Partido implements Serializable {
+public class District implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idPartido;
-    private String nombre;
-    private String descripcion;
+    private Integer id;
+    private String name;
+    private String imagePath;
 
 }

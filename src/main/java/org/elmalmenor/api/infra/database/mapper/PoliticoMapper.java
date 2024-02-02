@@ -10,43 +10,42 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public abstract class PoliticoMapper {
 
-    @Mapping(target = "nombre", source = "nombre")
-    @Mapping(target = "apellido", source = "apellido")
+    @Mapping(target = "firstName", source = "nombre")
+    @Mapping(target = "lastName", source = "apellido")
     @Mapping(target = "email", source = "email")
-    @Mapping(target = "profesion", source = "profesion")
-    @Mapping(target = "nacimiento", source = "nacimiento")
-    @Mapping(target = "imagenUrl", source = "imagenUrl")
-    @Mapping(target = "bloque", ignore = true)
-    @Mapping(target = "distrito", ignore = true)
-    @Mapping(target = "funciones", ignore = true)
-    @Mapping(target = "proyectos", ignore = true)
-    @Mapping(target = "comisiones", ignore = true)
-    public abstract Politico map(DiputadoModel diputadoModel);
+    @Mapping(target = "phone", ignore = true)
+    @Mapping(target = "birthDate", source = "nacimiento")
+    @Mapping(target = "imagePath", source = "imagenUrl")
+    @Mapping(target = "periods", ignore = true)
+    @Mapping(target = "projects", ignore = true)
+    @Mapping(target = "professions", ignore = true)
+    public abstract Politician map(DiputadoModel diputadoModel);
 
-    @Mapping(target = "descripcion", source = "bloque")
-    @Mapping(target = "partido", ignore = true)
-    public abstract Bloque mapBloque(DiputadoModel diputadoModel);
+    @Mapping(target = "name", source = "profesion")
+    public abstract Profession mapProfession(DiputadoModel diputadoModel);
 
-    @Mapping(target = "descripcion", source = "distrito")
-    public abstract Distrito mapDistrito(DiputadoModel diputadoModel);
+    @Mapping(target = "name", source = "bloque")
+    @Mapping(target = "politicianParty", ignore = true)
+    public abstract Bloc mapBloc(DiputadoModel diputadoModel);
 
-    @Mapping(target = "idProyecto", source = "expediente")
-    @Mapping(target = "sumario", source = "sumario")
-    @Mapping(target = "fecha", source = "fecha")
-    public abstract Proyecto mapProyecto(ProyectoModel proyectoModel);
+    @Mapping(target = "name", source = "distrito")
+    public abstract District mapDistrict(DiputadoModel diputadoModel);
 
-    @Mapping(target = "descripcion", source = "tipo")
-    public abstract TipoProyecto mapTipoProyecto(ProyectoModel proyectoModel);
+    @Mapping(target = "id", source = "expediente")
+    @Mapping(target = "name", source = "sumario")
+    @Mapping(target = "date", source = "fecha")
+    public abstract Project mapProject(ProyectoModel proyectoModel);
 
-    @Mapping(target = "nombre", source = "funcion")
-    @Mapping(target = "descripcion", source = "funcion")
-    public abstract Funcion mapFuncion(DiputadoModel diputadoModel);
+    @Mapping(target = "name", source = "tipo")
+    public abstract ProjectType mapProjectType(ProyectoModel proyectoModel);
 
-    @Mapping(target = "descripcion", source = "cargo")
-    public abstract CargoComision mapCargoComision(ComisionModel comisionModel);
+    @Mapping(target = "name", source = "funcion")
+    public abstract PublicFunction mapPublicPunction(DiputadoModel diputadoModel);
 
-    @Mapping(target = "nombre", source = "nombre")
-    @Mapping(target = "descripcion", source = "nombre")
-    public abstract Comision mapComision(ComisionModel comisionModel);
+    @Mapping(target = "name", source = "cargo")
+    public abstract CommissionPosition mapCommissionPosition(ComisionModel comisionModel);
+
+    @Mapping(target = "name", source = "nombre")
+    public abstract Commission mapComission(ComisionModel comisionModel);
 
 }

@@ -5,17 +5,14 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-@Data
 @Entity
+@Data
 @Table
-public class Bloque implements Serializable {
+public class Profession implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idBloque;
-    private String descripcion;
-
-    @ManyToOne
-    private Partido partido;
+    private Integer id;
+    private String name;
 
 }

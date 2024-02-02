@@ -1,6 +1,5 @@
 package org.elmalmenor.api.infra.database.service;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.elmalmenor.api.domain.model.DiputadoModel;
 import org.elmalmenor.api.infra.database.mapper.PoliticoMapper;
@@ -9,9 +8,11 @@ import org.elmalmenor.api.infra.database.repository.*;
 import org.elmalmenor.api.infra.database.spec.Populatable;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -20,37 +21,37 @@ public class PopulationService implements Populatable {
 
     private final PoliticoMapper politicoMapper;
 
-    private final ProyectoRepository proyectoRepository;
-    private final TipoProyectoRepository tipoProyectoRepository;
-    private final FuncionRepository funcionRepository;
-    private final TipoComisionRepository tipoComisionRepository;
-    private final DistritoRepository distritoRepository;
+    private final ProjectRepository projectRepository;
+    private final ProjectTypeRepository projectTypeRepository;
+    private final PublicFunctionRepository publicFunctionRepository;
+    private final CommissionTypeRepository commissionTypeRepository;
+    private final DistrictRepository districtRepository;
     private final ComisionRepository comisionRepository;
-    private final CargoComisionRepository cargoComisionRepository;
-    private final BloqueRepository bloqueRepository;
-    private final PoliticoRepository politicoRepository;
-    private final PoliticoFuncionReposistory politicoFuncionReposistory;
-    private final PoliticoComisionRepository politicoComisionRepository;
+    private final CommissionPositionRepository commissionPositionRepository;
+    private final BlocRepository blocRepository;
+    private final PoliticianRepository politicianRepository;
+    private final PeriodReposistory periodReposistory;
+    private final PoliticianCommissionRepository politicianCommissionRepository;
+    private final ProfessionRepository professionRepository;
 
     @Override
     public void populateTable(Stream<DiputadoModel> diputados) {
 
         diputados.forEach(e -> {
 
-            if (politicoRepository.findPoliticoByNombreAndApellido(e.getNombre(), e.getApellido()).isEmpty()) {
+            if (politicianRepository.findByFirstNameAndLastName(e.getNombre(), e.getApellido()).isEmpty()) {
 
                 System.out.println("Procesando Diputado...: " + e.getApellido() + " | " + e);
-                Politico politico = politicoMapper.map(e);
+                Politician politico = politicoMapper.map(e);
 
-                constructDistritoRelation(politico, e);
-                constructBloqueRelation(politico, e);
                 constructProyectosRelation(politico, e);
-                constructComisionesRelation(politico, e);
+                constructProfessionRelation(politico,  e);
 
-                politicoRepository.save(politico);
-                proyectoRepository.flush();
+                politicianRepository.save(politico);
+                politicianRepository.flush();
 
-                constructFuncionRelation(politico, e);
+                constructPeriodRelation(politico, e);
+
             } else {
                 System.out.println("Ya Procesado Diputado...: " + e.getApellido());
             }
@@ -60,150 +61,179 @@ public class PopulationService implements Populatable {
 
     }
 
-    private void constructComisionesRelation(Politico politico, DiputadoModel diputadoModel) {
+    private void constructPeriodRelation(Politician politician, DiputadoModel diputadoModel) {
+
+        Period period = new Period();
+        period.setStartDate(diputadoModel.getMandatoInicio());
+        period.setEndDate(diputadoModel.getMandatoFin());
+        period.setActive(true);
+
+        period.setPolitician(politician);
+        period.setBloc(getBlocOrSave(politicoMapper.mapBloc(diputadoModel)));
+        period.setDistrict(getDistrictOrSave(politicoMapper.mapDistrict(diputadoModel)));
+        period.setPublicFunction(getPublicFunctionOrSave(politicoMapper.mapPublicPunction(diputadoModel)));
+
+        constructComissionsRelation(period, diputadoModel);
+
+        periodReposistory.save(period);
+
+    }
+
+    private void constructComissionsRelation(Period period, DiputadoModel diputadoModel) {
 
         if (!Objects.nonNull(diputadoModel.getComisiones()))
             return;
 
         diputadoModel.getComisiones().forEach(e -> {
 
-            CargoComision cargoComision = getCargoComisionOrSave(politicoMapper.mapCargoComision(e));
-            Comision comision = getComisionOrSave(politicoMapper.mapComision(e));
+            CommissionPosition commissionPosition = getCommissionPositionOrSave(politicoMapper.mapCommissionPosition(e));
+            Commission commission = getCommissionOrSave(politicoMapper.mapComission(e));
 
-            PoliticoComision politicoComision = new PoliticoComision();
+            PoliticianCommission politicoComision = new PoliticianCommission();
 
-            politicoComision.setCargoComision(cargoComision);
-            politicoComision.setPolitico(politico);
-            politicoComision.setComision(comision);
+            politicoComision.setCommissionPosition(commissionPosition);
+            politicoComision.setPeriod(period);
+            politicoComision.setCommission(commission);
 
-            politicoComisionRepository.save(politicoComision);
+            politicianCommissionRepository.save(politicoComision);
 
         });
 
     }
 
-    private void constructProyectosRelation(Politico politico, DiputadoModel diputadoModel) {
+    private void constructProyectosRelation(Politician politician, DiputadoModel diputadoModel) {
 
-        Set<Proyecto> proyectos = new HashSet<>();
+        Set<Project> projects = new HashSet<>();
 
         if (!Objects.nonNull(diputadoModel.getProyectos()))
             return;
 
         diputadoModel.getProyectos().forEach(p -> {
-            TipoProyecto tipoProyecto = getTipoProyectoOrSave(politicoMapper.mapTipoProyecto(p));
+            ProjectType projectType = getProjectTypeOrSave(politicoMapper.mapProjectType(p));
 
-            Proyecto proyecto = politicoMapper.mapProyecto(p);
-            proyecto.setTipoProyecto(tipoProyecto);
+            Project project = politicoMapper.mapProject(p);
+            project.setProjectType(projectType);
 
-            proyecto = getProyectoOrSave(proyecto);
+            projects.add(getProjectOrSave(project));
 
-            proyectos.add(proyecto);
         });
 
-        politico.setProyectos(proyectos);
+        politician.setProjects(projects);
 
     }
 
-    private void constructBloqueRelation(Politico politico, DiputadoModel diputadoModel) {
-        Bloque bloque = getBloqueOrSave(politicoMapper.mapBloque(diputadoModel));
-        politico.setBloque(bloque);
+    private void constructProfessionRelation(Politician politician, DiputadoModel diputadoModel) {
+        Set<Profession> professions = Arrays.stream(diputadoModel.getProfesion().split("-"))
+                .map(e -> getProfessionOrSave(e.trim()))
+                .collect(Collectors.toSet());
+
+        politician.setProfessions(professions);
     }
 
-    private void constructFuncionRelation(Politico politico, DiputadoModel diputadoModel) {
-        Funcion funcion = getFuncionOrSave(politicoMapper.mapFuncion(diputadoModel));
-
-        PoliticoFuncion politicoFuncion = new PoliticoFuncion(
-                politico,
-                funcion,
-                diputadoModel.getMandatoInicio(),
-                diputadoModel.getMandatoFin(),
-                true
-        );
-
-        politicoFuncionReposistory.save(politicoFuncion);
+    private void constructBlocRelation(Period period, DiputadoModel diputadoModel) {
+        Bloc bloque = getBlocOrSave(politicoMapper.mapBloc(diputadoModel));
+        period.setBloc(bloque);
     }
 
-    private void constructDistritoRelation(Politico politico, DiputadoModel diputadoModel) {
-        Distrito distrito = getDistritoOrSave(politicoMapper.mapDistrito(diputadoModel));
-        politico.setDistrito(distrito);
+    private void constructFuncionRelation(Period period, DiputadoModel diputadoModel) {
+        PublicFunction funcion = getPublicFunctionOrSave(politicoMapper.mapPublicPunction(diputadoModel));
+        period.setPublicFunction(funcion);
     }
 
-    private Proyecto getProyectoOrSave(Proyecto proyecto) {
-        return proyectoRepository
-                .findById(proyecto.getIdProyecto())
+    private void constructDistrictRelation(Period period, DiputadoModel diputadoModel) {
+        District district = getDistrictOrSave(politicoMapper.mapDistrict(diputadoModel));
+        period.setDistrict(district);
+    }
+
+    private Project getProjectOrSave(Project project) {
+        return projectRepository
+                .findById(project.getId())
                 .orElseGet(() -> {
-                    proyectoRepository.save(proyecto);
-                    proyectoRepository.flush();
-                    return proyecto;
+                    projectRepository.save(project);
+                    projectRepository.flush();
+                    return project;
                 });
     }
 
-    private TipoProyecto getTipoProyectoOrSave(TipoProyecto tipoProyecto) {
-        return tipoProyectoRepository
-                .findTipoProyectoByDescripcion(tipoProyecto.getDescripcion())
+    private ProjectType getProjectTypeOrSave(ProjectType projectType) {
+        return projectTypeRepository
+                .findByName(projectType.getName())
                 .orElseGet(() -> {
-                    tipoProyectoRepository.save(tipoProyecto);
-                    proyectoRepository.flush();
-                    return tipoProyecto;
+                    projectTypeRepository.save(projectType);
+                    projectTypeRepository.flush();
+                    return projectType;
                 });
     }
 
-    private Funcion getFuncionOrSave(Funcion funcion) {
-        return funcionRepository
-                .findFuncionByDescripcion(funcion.getDescripcion())
+    private PublicFunction getPublicFunctionOrSave(PublicFunction publicFunction) {
+        return publicFunctionRepository
+                .findByName(publicFunction.getName())
                 .orElseGet(() -> {
-                    funcionRepository.save(funcion);
-                    proyectoRepository.flush();
-                    return funcion;
+                    publicFunctionRepository.save(publicFunction);
+                    publicFunctionRepository.flush();
+                    return publicFunction;
                 });
     }
 
-    private TipoComision getTipoComisionOrSave(TipoComision tipoComision) {
-        return tipoComisionRepository
-                .findTipoComisionByDescripcion(tipoComision.getDescripcion())
+    private CommissionType getCommissionTypeOrSave(CommissionType tipoComision) {
+        return commissionTypeRepository
+                .findByName(tipoComision.getName())
                 .orElseGet(() -> {
-                    tipoComisionRepository.save(tipoComision);
-                    proyectoRepository.flush();
+                    commissionTypeRepository.save(tipoComision);
+                    commissionTypeRepository.flush();
                     return tipoComision;
                 });
     }
 
-    private Distrito getDistritoOrSave(Distrito distrito) {
-        return distritoRepository
-                .findDistritoByDescripcion(distrito.getDescripcion())
+    private District getDistrictOrSave(District district) {
+        return districtRepository
+                .findByName(district.getName())
                 .orElseGet(() -> {
-                    distritoRepository.save(distrito);
-                    proyectoRepository.flush();
-                    return distrito;
+                    districtRepository.save(district);
+                    districtRepository.flush();
+                    return district;
                 });
     }
 
-    private Comision getComisionOrSave(Comision comision) {
+    private Commission getCommissionOrSave(Commission comision) {
         return comisionRepository
-                .findComisionByDescripcion(comision.getDescripcion())
+                .findByName(comision.getName())
                 .orElseGet(() -> {
                     comisionRepository.save(comision);
-                    proyectoRepository.flush();
+                    comisionRepository.flush();
                     return comision;
                 });
     }
 
-    private CargoComision getCargoComisionOrSave(CargoComision comision) {
-        return cargoComisionRepository
-                .findCargoComisionByDescripcion(comision.getDescripcion())
+    private CommissionPosition getCommissionPositionOrSave(CommissionPosition commissionPosition) {
+        return commissionPositionRepository
+                .findByName(commissionPosition.getName())
                 .orElseGet(() -> {
-                    cargoComisionRepository.save(comision);
-                    proyectoRepository.flush();
-                    return comision;
+                    commissionPositionRepository.save(commissionPosition);
+                    commissionPositionRepository.flush();
+                    return commissionPosition;
                 });
     }
 
-    private Bloque getBloqueOrSave(Bloque bloque) {
-        return bloqueRepository
-                .findBloqueByDescripcion(bloque.getDescripcion())
+    private Bloc getBlocOrSave(Bloc bloc) {
+        return blocRepository
+                .findByName(bloc.getName())
                 .orElseGet(() -> {
-                    bloqueRepository.save(bloque);
-                    return bloque;
+                    blocRepository.save(bloc);
+                    blocRepository.flush();
+                    return bloc;
+                });
+    }
+
+    private Profession getProfessionOrSave(String name) {
+        return professionRepository
+                .findByName(name)
+                .orElseGet(() -> {
+                    Profession p = new Profession();
+                    p.setName(name);
+                    professionRepository.save(p);
+                    professionRepository.flush();
+                    return p;
                 });
     }
 }

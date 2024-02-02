@@ -8,12 +8,14 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table
-public class Distrito implements Serializable {
+public class Bloc implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idDistrito;
-    private String descripcion;
-    private String imagenUrl;
+    private Integer id;
+    private String name;
+
+    @ManyToOne
+    private PoliticianParty politicianParty;
 
 }

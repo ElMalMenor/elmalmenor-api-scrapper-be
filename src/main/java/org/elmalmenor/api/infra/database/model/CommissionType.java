@@ -8,11 +8,11 @@ import java.io.Serializable;
 @Data
 @Entity
 @Table
-public class TipoProyecto implements Serializable {
+public class CommissionType implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idTipoProyecto;
-    private String descripcion;
+    private Integer id;
+    private String name;
 
 }
