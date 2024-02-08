@@ -1,23 +1,25 @@
 package org.elmalmenor.api.infra.database.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 import org.elmalmenor.api.domain.model.DiputadoModel;
 import org.elmalmenor.api.infra.database.mapper.PoliticoMapper;
 import org.elmalmenor.api.infra.database.model.*;
 import org.elmalmenor.api.infra.database.repository.*;
 import org.elmalmenor.api.infra.database.spec.Populatable;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class PopulationService implements Populatable {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     private final PoliticoMapper politicoMapper;
 
@@ -37,11 +39,11 @@ public class PopulationService implements Populatable {
     @Override
     public void populateTable(Stream<DiputadoModel> diputados) {
 
-        diputados.forEach(e -> {
+        diputados.parallel().forEach(e -> {
 
             if (politicianRepository.findByFirstNameAndLastName(e.getNombre(), e.getApellido()).isEmpty()) {
 
-                System.out.println("Procesando Diputado...: " + e.getApellido() + " | " + e);
+                LOGGER.info("Procesando Diputado...: {} {}", e.getNombre(), e.getApellido());
                 Politician politico = politicoMapper.map(e);
 
                 constructProyectosRelation(politico, e);
@@ -52,12 +54,11 @@ public class PopulationService implements Populatable {
 
                 constructPeriodRelation(politico, e);
 
-            } else {
-                System.out.println("Ya Procesado Diputado...: " + e.getApellido());
             }
 
-
         });
+
+        LOGGER.info("Proceso Terminado");
 
     }
 
@@ -108,14 +109,15 @@ public class PopulationService implements Populatable {
         if (!Objects.nonNull(diputadoModel.getProyectos()))
             return;
 
-        diputadoModel.getProyectos().forEach(p -> {
-            ProjectType projectType = getProjectTypeOrSave(politicoMapper.mapProjectType(p));
+        diputadoModel.getProyectos().parallelStream().forEach(p -> {
+            if (!p.getSumario().trim().isEmpty()) {
+                ProjectType projectType = getProjectTypeOrSave(politicoMapper.mapProjectType(p));
 
-            Project project = politicoMapper.mapProject(p);
-            project.setProjectType(projectType);
+                Project project = politicoMapper.mapProject(p);
+                project.setProjectType(projectType);
 
-            projects.add(getProjectOrSave(project));
-
+                projects.add(getProjectOrSave(project));
+            }
         });
 
         politician.setProjects(projects);
@@ -123,29 +125,32 @@ public class PopulationService implements Populatable {
     }
 
     private void constructProfessionRelation(Politician politician, DiputadoModel diputadoModel) {
-        Set<Profession> professions = Arrays.stream(diputadoModel.getProfesion().split("-"))
-                .map(e -> getProfessionOrSave(e.trim()))
+
+        List<String> toNormalize = toListWithDivider(diputadoModel.getProfesion());
+
+        Set<Profession> professions = toNormalize.stream()
+                .map(this::getProfessionOrSave)
                 .collect(Collectors.toSet());
 
         politician.setProfessions(professions);
     }
 
-    private void constructBlocRelation(Period period, DiputadoModel diputadoModel) {
+    private synchronized void constructBlocRelation(Period period, DiputadoModel diputadoModel) {
         Bloc bloque = getBlocOrSave(politicoMapper.mapBloc(diputadoModel));
         period.setBloc(bloque);
     }
 
-    private void constructFuncionRelation(Period period, DiputadoModel diputadoModel) {
+    private synchronized void constructFuncionRelation(Period period, DiputadoModel diputadoModel) {
         PublicFunction funcion = getPublicFunctionOrSave(politicoMapper.mapPublicPunction(diputadoModel));
         period.setPublicFunction(funcion);
     }
 
-    private void constructDistrictRelation(Period period, DiputadoModel diputadoModel) {
+    private synchronized void constructDistrictRelation(Period period, DiputadoModel diputadoModel) {
         District district = getDistrictOrSave(politicoMapper.mapDistrict(diputadoModel));
         period.setDistrict(district);
     }
 
-    private Project getProjectOrSave(Project project) {
+    private synchronized Project getProjectOrSave(Project project) {
         return projectRepository
                 .findById(project.getId())
                 .orElseGet(() -> {
@@ -155,7 +160,9 @@ public class PopulationService implements Populatable {
                 });
     }
 
-    private ProjectType getProjectTypeOrSave(ProjectType projectType) {
+    private synchronized ProjectType getProjectTypeOrSave(ProjectType projectType) {
+        projectType.setName(toTitleCase(projectType.getName()));
+
         return projectTypeRepository
                 .findByName(projectType.getName())
                 .orElseGet(() -> {
@@ -165,7 +172,7 @@ public class PopulationService implements Populatable {
                 });
     }
 
-    private PublicFunction getPublicFunctionOrSave(PublicFunction publicFunction) {
+    private synchronized PublicFunction getPublicFunctionOrSave(PublicFunction publicFunction) {
         return publicFunctionRepository
                 .findByName(publicFunction.getName())
                 .orElseGet(() -> {
@@ -175,7 +182,9 @@ public class PopulationService implements Populatable {
                 });
     }
 
-    private CommissionType getCommissionTypeOrSave(CommissionType tipoComision) {
+    private synchronized CommissionType getCommissionTypeOrSave(CommissionType tipoComision) {
+        tipoComision.setName(toTitleCase(tipoComision.getName()));
+
         return commissionTypeRepository
                 .findByName(tipoComision.getName())
                 .orElseGet(() -> {
@@ -185,7 +194,9 @@ public class PopulationService implements Populatable {
                 });
     }
 
-    private District getDistrictOrSave(District district) {
+    private synchronized District getDistrictOrSave(District district) {
+        district.setName(toTitleCase(district.getName()));
+
         return districtRepository
                 .findByName(district.getName())
                 .orElseGet(() -> {
@@ -195,7 +206,9 @@ public class PopulationService implements Populatable {
                 });
     }
 
-    private Commission getCommissionOrSave(Commission comision) {
+    private synchronized Commission getCommissionOrSave(Commission comision) {
+        comision.setName(toTitleCase(comision.getName()));
+
         return comisionRepository
                 .findByName(comision.getName())
                 .orElseGet(() -> {
@@ -205,7 +218,9 @@ public class PopulationService implements Populatable {
                 });
     }
 
-    private CommissionPosition getCommissionPositionOrSave(CommissionPosition commissionPosition) {
+    private synchronized CommissionPosition getCommissionPositionOrSave(CommissionPosition commissionPosition) {
+        commissionPosition.setName(toTitleCase(commissionPosition.getName()));
+
         return commissionPositionRepository
                 .findByName(commissionPosition.getName())
                 .orElseGet(() -> {
@@ -215,7 +230,9 @@ public class PopulationService implements Populatable {
                 });
     }
 
-    private Bloc getBlocOrSave(Bloc bloc) {
+    private synchronized Bloc getBlocOrSave(Bloc bloc) {
+        bloc.setName(toTitleCase(bloc.getName()));
+
         return blocRepository
                 .findByName(bloc.getName())
                 .orElseGet(() -> {
@@ -225,15 +242,62 @@ public class PopulationService implements Populatable {
                 });
     }
 
-    private Profession getProfessionOrSave(String name) {
+    private synchronized Profession getProfessionOrSave(String name) {
+        String nameCase = toTitleCase(name);
+
         return professionRepository
-                .findByName(name)
+                .findByName(nameCase)
                 .orElseGet(() -> {
                     Profession p = new Profession();
-                    p.setName(name);
+                    p.setName(nameCase);
                     professionRepository.save(p);
                     professionRepository.flush();
                     return p;
                 });
+    }
+
+    private List<String> toListWithDivider(String string) {
+
+        List<String> words;
+
+        switch (string) {
+            case String s && (s.contains("y")) -> words = Arrays.asList(string.split("y"));
+            case String s && (s.contains("-")) -> words = Arrays.asList(string.split("-"));
+            case String s && (s.contains("/")) ->  {
+                words = Arrays.asList(string.split("/"));
+
+                if (words.get(words.size()-1).equals("a") || words.get(words.size()-1).equals("o")) {
+                    words.remove(words.size()-1);
+                }
+            }
+            default -> words = List.of(string);
+        }
+
+        return words.stream().map(String::trim).collect(Collectors.toList());
+    }
+
+    private String toTitleCase(String string) {
+        if (string.trim().isEmpty()) {
+            return "No Definido";
+        }
+
+        List<String> list = List.of(string.split(" "));
+
+        return IntStream.range(0 , list.size())
+                .mapToObj(i -> {
+                    String word = list.get(i).toLowerCase();
+
+                    if (i != 0 && checkBannedWords(word)) {
+                        return word;
+                    }
+
+                    return word.substring(0, 1).toUpperCase() + word.substring(1);
+                })
+                .collect(Collectors.joining(" "));
+
+    }
+
+    private boolean checkBannedWords(String string) {
+        return List.of("por", "y", "de", "del", "la", "las", "los", "lo", "en", "e").contains(string);
     }
 }
