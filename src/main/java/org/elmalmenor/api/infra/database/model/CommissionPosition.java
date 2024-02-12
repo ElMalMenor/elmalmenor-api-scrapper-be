@@ -16,7 +16,7 @@ public class CommissionPosition {
     private Integer id;
     private String name;
 
-    @OneToMany(mappedBy = "commissionPosition", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy = "commissionPosition", cascade = {CascadeType.MERGE})
     @ToString.Exclude
     private Set<PoliticianCommission> politicianCommissions;
 }

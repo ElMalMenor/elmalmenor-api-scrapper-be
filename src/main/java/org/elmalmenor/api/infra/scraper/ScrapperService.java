@@ -13,6 +13,8 @@ import org.htmlunit.WebClient;
 import org.htmlunit.html.DomNode;
 import org.htmlunit.html.DomNodeList;
 import org.htmlunit.html.HtmlPage;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,7 +25,6 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ScrapperService implements Scrabble {
 
-    private final WebClient webClient;
     private final ScrapperMapper scrapperMapper;
     private final DiputadoMapper diputadoMapper;
 
@@ -46,7 +47,7 @@ public class ScrapperService implements Scrabble {
 //        System.out.println(miniTest);
 
 
-        return scrapDiputadosRawList().peek(e -> {
+        return scrapDiputadosRawList().parallel().peek(e -> {
             e.setContactoRaw(scrapContactoRaw(e));
             e.setComisionRawSet(scrapComisionRaw(e));
             e.setProyectoRaws(scrapProyectosRaw(e));
@@ -54,8 +55,9 @@ public class ScrapperService implements Scrabble {
 
     }
 
+    @Retryable(backoff = @Backoff(delay = 1000))
     private Stream<DiputadoRaw> scrapDiputadosRawList() {
-        try {
+        try (WebClient webClient = webClient()) {
             HtmlPage page = webClient.getPage("https://www.diputados.gov.ar/diputados/index.html");
 
             DomNodeList<DomNode> rows = page.querySelectorAll("#tablaDiputados tbody tr");
@@ -67,9 +69,10 @@ public class ScrapperService implements Scrabble {
         }
     }
 
+    @Retryable(backoff = @Backoff(delay = 1000))
     private ContactoRaw scrapContactoRaw(DiputadoRaw diputadoRaw) {
 
-        try {
+        try (WebClient webClient = webClient()) {
 
             if (diputadoRaw.getDetallePath().contains("//")) {
                 return null;
@@ -87,16 +90,17 @@ public class ScrapperService implements Scrabble {
 
     }
 
+    @Retryable(backoff = @Backoff(delay = 1000))
     private Set<ComisionRaw> scrapComisionRaw(DiputadoRaw diputadoRaw) {
 
-        try {
+        try (WebClient webClient = webClient()) {
 
             if (diputadoRaw.getDetallePath().contains("//")) {
                 return null;
             }
 
             HtmlPage page = webClient.getPage("https://www.diputados.gov.ar"
-                    + diputadoRaw.getDetallePath() + "/comisiones.html");
+                    + diputadoRaw.getDetallePath() + "comisiones.html");
 
             DomNodeList<DomNode> rows = page.querySelectorAll("#tablaComisiones tbody tr");
 
@@ -108,9 +112,10 @@ public class ScrapperService implements Scrabble {
 
     }
 
+    @Retryable(backoff = @Backoff(delay = 1000))
     private Set<ProyectoRaw> scrapProyectosRaw(DiputadoRaw diputadoRaw) {
 
-        try {
+        try (WebClient webClient = webClient()) {
 
             if (diputadoRaw.getDetallePath().contains("//")) {
                 return null;
@@ -119,7 +124,7 @@ public class ScrapperService implements Scrabble {
             Set<ProyectoRaw> proyectos = new HashSet<>();
 
             HtmlPage page = webClient.getPage("https://www.diputados.gov.ar"
-                    + diputadoRaw.getDetallePath() + "/listado-proyectos.html");
+                    + diputadoRaw.getDetallePath() + "listado-proyectos.html");
 
             DomNodeList<DomNode> rows;
 
@@ -129,13 +134,13 @@ public class ScrapperService implements Scrabble {
                 return null;
             }
 
-            int lastPageNum = Integer.parseInt(paginator.get(paginator.size()-1).getAttributes().getNamedItem("href")
+            int lastPageNum = Integer.parseInt(paginator.getLast().getAttributes().getNamedItem("href")
                     .getNodeValue().split("=")[1]);
 
             for (int i = 1; i <= lastPageNum; i++) {
 
                 page = webClient.getPage("https://www.diputados.gov.ar"
-                        + diputadoRaw.getDetallePath() + "/listado-proyectos.html?pagina="+i);
+                        + diputadoRaw.getDetallePath() + "listado-proyectos.html?pagina="+i);
 
                 rows = page.querySelectorAll("#tablesorter tbody tr");
 
@@ -151,5 +156,12 @@ public class ScrapperService implements Scrabble {
 
     }
 
+    private WebClient webClient() {
+        WebClient client = new WebClient();
+        client.getOptions().setCssEnabled(false);
+        client.getOptions().setJavaScriptEnabled(false);
+
+        return client;
+    }
 
 }

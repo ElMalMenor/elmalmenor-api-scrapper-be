@@ -20,7 +20,7 @@ public class Commission implements Serializable {
     @ManyToOne
     private CommissionType commissionType;
 
-    @OneToMany(mappedBy = "commission", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy = "commission", cascade = {CascadeType.MERGE})
     @ToString.Exclude
     private Set<PoliticianCommission> politicianCommissions;
 }

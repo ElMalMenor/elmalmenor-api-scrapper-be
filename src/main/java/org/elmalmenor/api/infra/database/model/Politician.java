@@ -24,7 +24,7 @@ public class Politician implements Serializable {
     private Date birthDate;
     private String imagePath;
 
-    @OneToMany(mappedBy = "politician", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "politician")
     private Set<Period> periods;
 
     @ManyToMany

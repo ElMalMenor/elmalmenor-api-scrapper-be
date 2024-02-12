@@ -34,7 +34,7 @@ public class Period implements Serializable {
     @ManyToOne
     private District district;
 
-    @OneToMany(mappedBy = "period", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @OneToMany(mappedBy = "period", cascade = {CascadeType.PERSIST})
     @ToString.Exclude
     private Set<PoliticianCommission> politicianCommissions;
 
