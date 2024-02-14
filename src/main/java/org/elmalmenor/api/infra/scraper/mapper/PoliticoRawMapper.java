@@ -57,10 +57,10 @@ public abstract class PoliticoRawMapper {
                 "regex4", "([0-9]{2})-([0-9]{2})-([0-9]{4})", "format4", "dd-MM-yyyy");
 
         switch (date) {
-            case String s when date.matches(regexMap.get("regex1")) -> { return dateFormat(date, regexMap.get("format1")); }
-            case String s when date.matches(regexMap.get("regex2")) -> { return dateFormat(date, regexMap.get("format2")); }
-            case String s when date.matches(regexMap.get("regex3")) -> { return dateFormat(date, regexMap.get("format3")); }
-            case String s when date.matches(regexMap.get("regex4")) -> { return dateFormat(date, regexMap.get("format4")); }
+            case String s when date.matches(regexMap.get("regex1")) -> { return dateFormat(s, regexMap.get("format1")); }
+            case String s when date.matches(regexMap.get("regex2")) -> { return dateFormat(s, regexMap.get("format2")); }
+            case String s when date.matches(regexMap.get("regex3")) -> { return dateFormat(s, regexMap.get("format3")); }
+            case String s when date.matches(regexMap.get("regex4")) -> { return dateFormat(s, regexMap.get("format4")); }
             default -> { return null; }
         }
     }

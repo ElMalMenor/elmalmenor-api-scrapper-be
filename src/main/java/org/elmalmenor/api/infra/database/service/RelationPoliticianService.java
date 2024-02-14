@@ -14,8 +14,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.elmalmenor.api.utils.Utils.toTitleCase;
-
 @Service
 @RequiredArgsConstructor
 public class RelationPoliticianService {

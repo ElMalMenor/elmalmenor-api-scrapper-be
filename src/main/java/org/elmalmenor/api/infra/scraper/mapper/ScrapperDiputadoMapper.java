@@ -25,7 +25,7 @@ public abstract class ScrapperDiputadoMapper {
     @Mapping(target = "mandatoInicio", expression = "java(map(domNode, 5).isEmpty() ? null : map(domNode, 5))")
     @Mapping(target = "mandatoFin", expression = "java(map(domNode, 6).isEmpty() ? null : map(domNode, 6))")
     @Mapping(target = "bloque", expression = "java(map(domNode, 7))")
-    @Mapping(target = "funcion", expression = "java(new String(\"Diputado\"))")
+    @Mapping(target = "funcion", expression = "java(\"Diputado\")")
     @Mapping(target = "partido", ignore = true)
     public abstract PoliticoRaw map(DomNode domNode);
 
