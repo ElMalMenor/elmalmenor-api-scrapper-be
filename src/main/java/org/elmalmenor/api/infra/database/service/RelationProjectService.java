@@ -10,6 +10,7 @@ import org.elmalmenor.api.infra.database.repository.ProjectTypeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.elmalmenor.api.utils.Utils.toTitleCase;
@@ -40,6 +41,13 @@ public class RelationProjectService {
                 .filter(e -> e.getId().equals(project.getId()))
                 .findFirst()
                 .orElseGet(() -> {
+                    Optional<Project> optional = projectRepository.findById(project.getId());
+
+                    if (optional.isPresent()) {
+                        cacheProject.add(optional.get());
+                        return optional.get();
+                    }
+
                     projectRepository.saveAndFlush(project);
                     cacheProject.add(project);
                     return project;
@@ -53,6 +61,13 @@ public class RelationProjectService {
                 .filter(e -> e.getName().equals(projectType.getName()))
                 .findFirst()
                 .orElseGet(() -> {
+                    Optional<ProjectType> optional = projectTypeRepository.findByName(projectType.getName());
+
+                    if (optional.isPresent()) {
+                        cacheProjectType.add(optional.get());
+                        return optional.get();
+                    }
+
                     projectTypeRepository.saveAndFlush(projectType);
                     cacheProjectType.add(projectType);
                     return projectType;

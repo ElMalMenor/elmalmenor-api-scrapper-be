@@ -2,7 +2,7 @@ package org.elmalmenor.api.infra.scraper.mapper;
 
 import org.elmalmenor.api.infra.scraper.model.ComisionRaw;
 import org.elmalmenor.api.infra.scraper.model.ContactoRaw;
-import org.elmalmenor.api.infra.scraper.model.DiputadoRaw;
+import org.elmalmenor.api.infra.scraper.model.PoliticoRaw;
 import org.elmalmenor.api.infra.scraper.model.ProyectoRaw;
 import org.htmlunit.html.DomNode;
 import org.mapstruct.Mapper;
@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 @Mapper(componentModel = "spring")
-public abstract class ScrapperMapper {
+public abstract class ScrapperDiputadoMapper {
 
     @Mapping(target = "imagenUrl", expression = "java(mapRefAttribute(domNode, 1, \"img\", \"src\"))")
     @Mapping(target = "detallePath", expression = "java(mapRefAttribute(domNode, 2, \"a\", \"href\"))")
@@ -25,9 +25,11 @@ public abstract class ScrapperMapper {
     @Mapping(target = "mandatoInicio", expression = "java(map(domNode, 5).isEmpty() ? null : map(domNode, 5))")
     @Mapping(target = "mandatoFin", expression = "java(map(domNode, 6).isEmpty() ? null : map(domNode, 6))")
     @Mapping(target = "bloque", expression = "java(map(domNode, 7))")
-    public abstract DiputadoRaw map(DomNode domNode);
+    @Mapping(target = "funcion", expression = "java(new String(\"Diputado\"))")
+    @Mapping(target = "partido", ignore = true)
+    public abstract PoliticoRaw map(DomNode domNode);
 
-    public abstract Stream<DiputadoRaw> map(List<DomNode> domNodes);
+    public abstract Stream<PoliticoRaw> map(List<DomNode> domNodes);
 
     protected String map(DomNode domNode, int childNumber) {
         return domNode.querySelector("td:nth-child("+ childNumber +")").asNormalizedText();

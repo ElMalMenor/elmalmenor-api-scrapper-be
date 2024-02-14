@@ -9,7 +9,7 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-public class DiputadoRaw {
+public class PoliticoRaw {
 
     private String imagenUrl;
     private String detallePath;
@@ -20,7 +20,8 @@ public class DiputadoRaw {
     private String mandatoInicio;
     private String mandatoFin;
     private String bloque;
-    private final String funcion = "Diputado";
+    private String partido;
+    private String funcion;
 
     private ContactoRaw contactoRaw;
     private Set<ComisionRaw> comisionRawSet;

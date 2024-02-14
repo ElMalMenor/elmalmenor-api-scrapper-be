@@ -1,7 +1,7 @@
 package org.elmalmenor.api.infra.database.mapper;
 
 import org.elmalmenor.api.domain.model.ComisionModel;
-import org.elmalmenor.api.domain.model.DiputadoModel;
+import org.elmalmenor.api.domain.model.PoliticoModel;
 import org.elmalmenor.api.domain.model.ProyectoModel;
 import org.elmalmenor.api.infra.database.model.*;
 import org.mapstruct.Mapper;
@@ -13,23 +13,23 @@ public abstract class PoliticoMapper {
     @Mapping(target = "firstName", source = "nombre")
     @Mapping(target = "lastName", source = "apellido")
     @Mapping(target = "email", source = "email")
-    @Mapping(target = "phone", ignore = true)
+    @Mapping(target = "phone", source = "telefono")
     @Mapping(target = "birthDate", source = "nacimiento")
     @Mapping(target = "imagePath", source = "imagenUrl")
     @Mapping(target = "periods", ignore = true)
     @Mapping(target = "projects", ignore = true)
     @Mapping(target = "professions", ignore = true)
-    public abstract Politician map(DiputadoModel diputadoModel);
+    public abstract Politician map(PoliticoModel diputadoModel);
 
     @Mapping(target = "name", source = "profesion")
-    public abstract Profession mapProfession(DiputadoModel diputadoModel);
+    public abstract Profession mapProfession(PoliticoModel diputadoModel);
 
     @Mapping(target = "name", source = "bloque")
     @Mapping(target = "politicianParty", ignore = true)
-    public abstract Bloc mapBloc(DiputadoModel diputadoModel);
+    public abstract Bloc mapBloc(PoliticoModel diputadoModel);
 
     @Mapping(target = "name", source = "distrito")
-    public abstract District mapDistrict(DiputadoModel diputadoModel);
+    public abstract District mapDistrict(PoliticoModel diputadoModel);
 
     @Mapping(target = "id", source = "expediente")
     @Mapping(target = "name", source = "sumario")
@@ -40,7 +40,7 @@ public abstract class PoliticoMapper {
     public abstract ProjectType mapProjectType(ProyectoModel proyectoModel);
 
     @Mapping(target = "name", source = "funcion")
-    public abstract PublicFunction mapPublicPunction(DiputadoModel diputadoModel);
+    public abstract PublicFunction mapPublicPunction(PoliticoModel diputadoModel);
 
     @Mapping(target = "name", source = "cargo")
     public abstract CommissionPosition mapCommissionPosition(ComisionModel comisionModel);

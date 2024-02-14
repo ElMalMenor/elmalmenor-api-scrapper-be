@@ -1,13 +1,13 @@
 package org.elmalmenor.api.infra.scraper.spec;
 
-import org.elmalmenor.api.domain.model.DiputadoModel;
+import org.elmalmenor.api.domain.model.PoliticoModel;
 
 import java.util.stream.Stream;
 
 public interface Scrabble {
 
 
-    Stream<DiputadoModel> scrap();
+    Stream<PoliticoModel> scrap();
 
 
 }

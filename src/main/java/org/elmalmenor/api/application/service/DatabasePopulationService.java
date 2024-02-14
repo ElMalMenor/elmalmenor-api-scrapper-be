@@ -5,7 +5,10 @@ import org.elmalmenor.api.application.spec.DatabasePopulationProcessor;
 import org.elmalmenor.api.application.spec.population.DatabaseProcessor;
 import org.elmalmenor.api.application.spec.population.ScrapperProcessor;
 
+import org.elmalmenor.api.domain.model.PoliticoModel;
 import org.springframework.stereotype.Service;
+
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -17,9 +20,11 @@ public class DatabasePopulationService implements DatabasePopulationProcessor {
     @Override
     public void processPopulation() {
 
-        databaseProcessor.populateDatabase(
-                scrapperProcessor.execScrapperDiputados()
-        );
+//        Stream<DiputadoModel> diputados = scrapperProcessor.execScrapperDiputados();
+//        databaseProcessor.populateDatabase(diputados);
+
+        Stream<PoliticoModel> senadores = scrapperProcessor.execScrapperSenadores();
+        databaseProcessor.populateDatabase(senadores);
 
     }
 }

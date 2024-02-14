@@ -11,7 +11,7 @@ import java.util.Set;
 @Data
 @Entity
 @Table
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"projects", "professions"})
 public class Politician implements Serializable {
 
     @Id

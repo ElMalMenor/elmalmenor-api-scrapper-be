@@ -1,5 +1,7 @@
 package org.elmalmenor.api.utils;
 
+import org.htmlunit.WebClient;
+
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -72,6 +74,15 @@ public class Utils {
         s = s.replace('\002', 'Ñ');
 
         return s;
+    }
+
+    public static WebClient webClient() {
+        WebClient client = new WebClient();
+        client.getOptions().setCssEnabled(false);
+        client.getOptions().setJavaScriptEnabled(false);
+        client.getOptions().setTimeout(180000);
+
+        return client;
     }
 
 }

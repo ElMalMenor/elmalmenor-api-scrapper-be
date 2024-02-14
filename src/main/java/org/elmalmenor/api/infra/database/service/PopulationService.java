@@ -1,8 +1,8 @@
 package org.elmalmenor.api.infra.database.service;
 
 import lombok.RequiredArgsConstructor;
+import org.elmalmenor.api.domain.model.PoliticoModel;
 import org.slf4j.Logger;
-import org.elmalmenor.api.domain.model.DiputadoModel;
 import org.elmalmenor.api.infra.database.spec.Populatable;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class PopulationService implements Populatable {
     private final RelationPoliticianService relationPoliticianService;
 
     @Override
-    public void populateTable(Stream<DiputadoModel> diputados) {
+    public void populateTable(Stream<PoliticoModel> diputados) {
 
         LOGGER.info("Proceso Iniciado");
 

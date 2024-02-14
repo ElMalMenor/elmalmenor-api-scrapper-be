@@ -2,6 +2,7 @@ package org.elmalmenor.api.infra.database.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -11,6 +12,7 @@ import java.util.Set;
 @Data
 @Entity
 @Table
+@EqualsAndHashCode(exclude = {"politician", "publicFunction", "bloc", "district", "politicianCommissions"})
 public class Period implements Serializable {
 
     @Id

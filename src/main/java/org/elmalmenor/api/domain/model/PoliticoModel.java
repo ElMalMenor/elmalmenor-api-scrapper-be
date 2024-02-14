@@ -10,7 +10,7 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-public class DiputadoModel {
+public class PoliticoModel {
 
     private String imagenUrl;
     private String nombre;
@@ -24,6 +24,7 @@ public class DiputadoModel {
     private Date nacimiento;
     private String profesion;
     private String funcion;
+    private String telefono;
 
     private Set<ProyectoModel> proyectos;
     private Set<ComisionModel> comisiones;

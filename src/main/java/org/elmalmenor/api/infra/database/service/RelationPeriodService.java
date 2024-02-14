@@ -1,7 +1,7 @@
 package org.elmalmenor.api.infra.database.service;
 
 import lombok.RequiredArgsConstructor;
-import org.elmalmenor.api.domain.model.DiputadoModel;
+import org.elmalmenor.api.domain.model.PoliticoModel;
 import org.elmalmenor.api.infra.database.mapper.PoliticoMapper;
 import org.elmalmenor.api.infra.database.model.*;
 import org.elmalmenor.api.infra.database.repository.BlocRepository;
@@ -11,6 +11,7 @@ import org.elmalmenor.api.infra.database.repository.PublicFunctionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.elmalmenor.api.utils.Utils.toTitleCase;
@@ -32,21 +33,21 @@ public class RelationPeriodService {
     private final Set<Bloc> cacheBloc = new HashSet<>();
     private final Set<District> cacheDistrict = new HashSet<>();
 
-    public synchronized void construct(Politician politician, DiputadoModel diputadoModel) {
+    public synchronized void construct(Politician politician, PoliticoModel politicoModel) {
 
         Period period = new Period();
-        period.setStartDate(diputadoModel.getMandatoInicio());
-        period.setEndDate(diputadoModel.getMandatoFin());
+        period.setStartDate(politicoModel.getMandatoInicio());
+        period.setEndDate(politicoModel.getMandatoFin());
         period.setActive(true);
 
         period.setPolitician(politician);
-        period.setBloc(getBlocOrSave(politicoMapper.mapBloc(diputadoModel)));
-        period.setDistrict(getDistrictOrSave(politicoMapper.mapDistrict(diputadoModel)));
-        period.setPublicFunction(getPublicFunctionOrSave(politicoMapper.mapPublicPunction(diputadoModel)));
+        period.setBloc(getBlocOrSave(politicoMapper.mapBloc(politicoModel)));
+        period.setDistrict(getDistrictOrSave(politicoMapper.mapDistrict(politicoModel)));
+        period.setPublicFunction(getPublicFunctionOrSave(politicoMapper.mapPublicPunction(politicoModel)));
 
         periodReposistory.saveAndFlush(period);
 
-        relationComissionService.construct(period, diputadoModel);
+        relationComissionService.construct(period, politicoModel);
 
     }
 
@@ -55,6 +56,13 @@ public class RelationPeriodService {
                 .filter(e -> e.getName().equals(publicFunction.getName()))
                 .findFirst()
                 .orElseGet(() -> {
+                    Optional<PublicFunction> optional = publicFunctionRepository.findByName(publicFunction.getName());
+
+                    if (optional.isPresent()) {
+                        cachePublicFunction.add(optional.get());
+                        return optional.get();
+                    }
+
                     publicFunctionRepository.saveAndFlush(publicFunction);
                     cachePublicFunction.add(publicFunction);
                     return publicFunction;
