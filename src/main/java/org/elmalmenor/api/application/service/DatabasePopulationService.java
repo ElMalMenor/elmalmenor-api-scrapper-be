@@ -20,11 +20,11 @@ public class DatabasePopulationService implements DatabasePopulationProcessor {
     @Override
     public void processPopulation() {
 
-//        Stream<DiputadoModel> diputados = scrapperProcessor.execScrapperDiputados();
-//        databaseProcessor.populateDatabase(diputados);
-
         Stream<PoliticoModel> senadores = scrapperProcessor.execScrapperSenadores();
         databaseProcessor.populateDatabase(senadores);
+
+        Stream<PoliticoModel> diputados = scrapperProcessor.execScrapperDiputados();
+        databaseProcessor.populateDatabase(diputados);
 
     }
 }

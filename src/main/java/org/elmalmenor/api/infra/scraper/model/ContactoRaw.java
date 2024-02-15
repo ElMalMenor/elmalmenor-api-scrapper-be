@@ -9,8 +9,6 @@ import lombok.ToString;
 @ToString
 public class ContactoRaw {
 
-    private String telefono;
-    private String interno;
     private String profesion;
     private String nacimiento;
     private String email;

@@ -13,7 +13,6 @@ public abstract class PoliticoMapper {
     @Mapping(target = "firstName", source = "nombre")
     @Mapping(target = "lastName", source = "apellido")
     @Mapping(target = "email", source = "email")
-    @Mapping(target = "phone", source = "telefono")
     @Mapping(target = "birthDate", source = "nacimiento")
     @Mapping(target = "imagePath", source = "imagenUrl")
     @Mapping(target = "periods", ignore = true)
@@ -21,12 +20,12 @@ public abstract class PoliticoMapper {
     @Mapping(target = "professions", ignore = true)
     public abstract Politician map(PoliticoModel diputadoModel);
 
-    @Mapping(target = "name", source = "profesion")
-    public abstract Profession mapProfession(PoliticoModel diputadoModel);
-
     @Mapping(target = "name", source = "bloque")
     @Mapping(target = "politicianParty", ignore = true)
     public abstract Bloc mapBloc(PoliticoModel diputadoModel);
+
+    @Mapping(target = "name", source = "partido")
+    public abstract PoliticianParty mapPoliticianParty(PoliticoModel diputadoModel);
 
     @Mapping(target = "name", source = "distrito")
     public abstract District mapDistrict(PoliticoModel diputadoModel);

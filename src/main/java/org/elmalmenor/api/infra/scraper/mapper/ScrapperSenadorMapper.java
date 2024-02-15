@@ -46,8 +46,6 @@ public abstract class ScrapperSenadorMapper {
         return domNode.querySelector("td:nth-child("+ childNumber +") " + ref).asNormalizedText();
     }
 
-    @Mapping(target = "telefono", expression = "java(mapliSplit(domNode, 2))")
-    @Mapping(target = "interno", expression = "java(mapliSplit(domNode, 3))")
     @Mapping(target = "profesion", ignore = true)
     @Mapping(target = "nacimiento", ignore = true)
     @Mapping(target = "email", expression = "java(mapli(domNode, 1).toLowerCase())")
@@ -55,15 +53,6 @@ public abstract class ScrapperSenadorMapper {
 
     protected String mapli(DomNode domNode, int childNumber) {
         return domNode.querySelector("li:nth-child("+ childNumber +")").asNormalizedText();
-    }
-
-    protected String mapliSplit(DomNode domNode, int childNumber) {
-        String node = domNode.querySelector("li:nth-child("+ childNumber +")").asNormalizedText();
-
-        if (node.contains("Hipólito"))
-            return null;
-
-        return node.split(":")[1].trim();
     }
 
     protected String map(DomNode domNode, String htmlClazzQuery) {

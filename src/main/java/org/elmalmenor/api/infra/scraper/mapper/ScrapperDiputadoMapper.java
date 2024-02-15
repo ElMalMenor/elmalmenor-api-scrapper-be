@@ -45,9 +45,6 @@ public abstract class ScrapperDiputadoMapper {
         return domNode.querySelector("td:nth-child("+ childNumber +") " + ref).asNormalizedText();
     }
 
-
-    @Mapping(target = "telefono", ignore = true)
-    @Mapping(target = "interno", ignore = true)
     @Mapping(target = "profesion", expression = "java(map(domNode, \".encabezadoProfesion span\"))")
     @Mapping(target = "nacimiento", expression = "java(map(domNode, \".encabezadoFecha span\"))")
     @Mapping(target = "email", expression = "java(map(domNode, \".col-12 a\").toLowerCase())")

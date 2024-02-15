@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.elmalmenor.api.domain.model.PoliticoModel;
 import org.elmalmenor.api.infra.database.mapper.PoliticoMapper;
 import org.elmalmenor.api.infra.database.model.*;
-import org.elmalmenor.api.infra.database.repository.BlocRepository;
-import org.elmalmenor.api.infra.database.repository.DistrictRepository;
-import org.elmalmenor.api.infra.database.repository.PeriodReposistory;
-import org.elmalmenor.api.infra.database.repository.PublicFunctionRepository;
+import org.elmalmenor.api.infra.database.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -26,12 +23,13 @@ public class RelationPeriodService {
     private final BlocRepository blocRepository;
     private final PeriodReposistory periodReposistory;
     private final PublicFunctionRepository publicFunctionRepository;
-
+    private final PoliticianPartyRepository politicianPartyRepository;
     private final RelationComissionService relationComissionService;
 
     private final Set<PublicFunction> cachePublicFunction = new HashSet<>();
     private final Set<Bloc> cacheBloc = new HashSet<>();
     private final Set<District> cacheDistrict = new HashSet<>();
+    private final Set<PoliticianParty> cachePoliticianParty = new HashSet<>();
 
     public synchronized void construct(Politician politician, PoliticoModel politicoModel) {
 
@@ -41,7 +39,12 @@ public class RelationPeriodService {
         period.setActive(true);
 
         period.setPolitician(politician);
-        period.setBloc(getBlocOrSave(politicoMapper.mapBloc(politicoModel)));
+
+        Bloc bloc = politicoMapper.mapBloc(politicoModel);
+        bloc.setPoliticianParty(getPoliticianPartyOrSave(politicoMapper.mapPoliticianParty(politicoModel)));
+
+        period.setBloc(getBlocOrSave(bloc));
+
         period.setDistrict(getDistrictOrSave(politicoMapper.mapDistrict(politicoModel)));
         period.setPublicFunction(getPublicFunctionOrSave(politicoMapper.mapPublicPunction(politicoModel)));
 
@@ -76,19 +79,59 @@ public class RelationPeriodService {
                 .filter(e -> e.getName().equals(bloc.getName()))
                 .findFirst()
                 .orElseGet(() -> {
+                    Optional<Bloc> optional = blocRepository.findByName(bloc.getName());
+
+                    if (optional.isPresent()) {
+                        cacheBloc.add(optional.get());
+                        return optional.get();
+                    }
+
                     blocRepository.saveAndFlush(bloc);
                     cacheBloc.add(bloc);
                     return bloc;
                 });
     }
 
+    private synchronized PoliticianParty getPoliticianPartyOrSave(PoliticianParty politicianParty) {
+        politicianParty.setName(toTitleCase(politicianParty.getName()));
+
+        return cachePoliticianParty.stream()
+                .filter(e -> e.getName().equals(politicianParty.getName()))
+                .findFirst()
+                .orElseGet(() -> {
+                    Optional<PoliticianParty> optional = politicianPartyRepository.findByName(politicianParty.getName());
+
+                    if (optional.isPresent()) {
+                        cachePoliticianParty.add(optional.get());
+                        return optional.get();
+                    }
+
+                    politicianPartyRepository.saveAndFlush(politicianParty);
+                    cachePoliticianParty.add(politicianParty);
+                    return politicianParty;
+                });
+    }
+
     private synchronized District getDistrictOrSave(District district) {
-        district.setName(toTitleCase(district.getName()));
+        if (district.getName().contains("CIUDAD AUTÓNOMA DE BUENOS AIRES"))
+            district.setName(toTitleCase("CIUDAD DE BUENOS AIRES"));
+
+        if (district.getName().contains("ANTÁRTIDA"))
+            district.setName(toTitleCase(district.getName().split(",")[0]));
+        else
+            district.setName(toTitleCase(district.getName()));
 
         return cacheDistrict.stream()
                 .filter(e -> e.getName().equals(district.getName()))
                 .findFirst()
                 .orElseGet(() -> {
+                    Optional<District> optional = districtRepository.findByName(district.getName());
+
+                    if (optional.isPresent()) {
+                        cacheDistrict.add(optional.get());
+                        return optional.get();
+                    }
+
                     districtRepository.saveAndFlush(district);
                     cacheDistrict.add(district);
                     return district;

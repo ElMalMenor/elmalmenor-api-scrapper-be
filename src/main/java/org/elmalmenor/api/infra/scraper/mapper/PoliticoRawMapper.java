@@ -34,7 +34,6 @@ public abstract class PoliticoRawMapper {
     @Mapping(target = "proyectos", expression = "java(mapProyecto(politico.getProyectoRaws()))")
     @Mapping(target = "comisiones", expression = "java(mapComision(politico.getComisionRawSet()))")
     @Mapping(target = "funcion", source = "funcion")
-    @Mapping(target = "telefono", source = "politico.contactoRaw.telefono")
     public abstract PoliticoModel map(PoliticoRaw politico);
 
     public abstract Stream<PoliticoModel> map(Stream<PoliticoRaw> diputadosRaw);

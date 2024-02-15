@@ -24,7 +24,6 @@ public class PoliticoModel {
     private Date nacimiento;
     private String profesion;
     private String funcion;
-    private String telefono;
 
     private Set<ProyectoModel> proyectos;
     private Set<ComisionModel> comisiones;

@@ -20,7 +20,6 @@ public class Politician implements Serializable {
     private String firstName;
     private String lastName;
     private String email;
-    private String phone;
     private Date birthDate;
     private String imagePath;
 

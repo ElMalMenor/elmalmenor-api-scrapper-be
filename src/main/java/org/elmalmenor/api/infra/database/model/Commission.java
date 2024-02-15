@@ -11,16 +11,13 @@ import java.util.Set;
 @Data
 @Entity
 @Table
-@EqualsAndHashCode(exclude = {"commissionType", "politicianCommissions"})
+@EqualsAndHashCode(exclude = {"politicianCommissions"})
 public class Commission implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
-
-    @ManyToOne
-    private CommissionType commissionType;
 
     @OneToMany(mappedBy = "commission", cascade = {CascadeType.MERGE})
     @ToString.Exclude
